@@ -1,0 +1,8 @@
+processing_queue_size: 10
+useRapidX : true
+rabbitmq:
+  exchange_name: "dragonfly"
+  routing_key: "dragonfly.demo_entities"
+  hostname: "gsa.cognitics.net"
+  username: "rapidx"
+  password: "dragonfly"

@@ -1,0 +1,4 @@
+rootProject.name = 'takserver-sdk'
+
+include 'takserver-sender-plugin-mcs'
+
