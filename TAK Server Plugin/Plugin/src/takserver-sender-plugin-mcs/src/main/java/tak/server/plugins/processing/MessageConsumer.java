@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import tak.server.plugins.McsSenderPlugin;
 import tak.server.plugins.interfaces.*;
 
 public class MessageConsumer {
@@ -34,7 +35,8 @@ public class MessageConsumer {
             try {
                 while(_running.get()) {
                     String message = _queue.take();
-                    _logger.info("message received in consumer sending to callback");
+                    if (McsSenderPlugin.VerboseLogging)
+                        _logger.info("message received in consumer sending to callback");
                     _callback.messageReceived(message);
                 }
             } 

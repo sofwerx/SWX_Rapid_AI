@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import tak.server.plugins.processing.*;
 import tak.server.plugins.PluginConfiguration;
+import tak.server.plugins.McsSenderPlugin;
 
 public class RabbitMQConsumer {
     private MessageProducer _producer;
@@ -49,9 +50,11 @@ public class RabbitMQConsumer {
             String queueName = _channel.queueDeclare().getQueue();
             _channel.queueBind(queueName, _exchangeName, _routingKey);
 
+
             DeliverCallback deliverCallback = (consumerTag, delivery) -> {
                 String message = new String(delivery.getBody(), "UTF-8");
-                logger.info("Msg Received '" + delivery.getEnvelope().getRoutingKey() + "':'" + message + "'");
+                if (McsSenderPlugin.VerboseLogging)
+                    logger.info("Msg Received '" + delivery.getEnvelope().getRoutingKey() + "':'" + message + "'");
                 _producer.AddMessage(message);
             };
 

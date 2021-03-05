@@ -45,6 +45,8 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 	private MessageConsumer _messageConsumer;
 	private BlockingQueue<String> _blockingQueue; 
     private ExecutorService _executor = Executors.newFixedThreadPool(2);
+
+	public static Boolean VerboseLogging = false;
 	
 	@SuppressWarnings("unchecked")
 	public McsSenderPlugin() {
@@ -64,6 +66,10 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 	public void start() {
 		try {
 			_logger.info("Configuration Properties: " + config.getProperties());
+
+			if (config.containsProperty("verboseLogging")) {
+				VerboseLogging = (boolean)config.getProperty("verboseLogging");
+			}
 
 			setupConnection();
 		} 
@@ -106,10 +112,12 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 				return;
 			}
 
-			_logger.info("TAK message converted: " + takMessage);
+			if(VerboseLogging)
+				_logger.info("TAK message converted: " + takMessage);
+			
 			send(takMessage);
 		} catch (Exception exception) {
-			_logger.error("error converting message", exception);
+			_logger.error("error converting message ", message, exception);
 		}
 	}
 }

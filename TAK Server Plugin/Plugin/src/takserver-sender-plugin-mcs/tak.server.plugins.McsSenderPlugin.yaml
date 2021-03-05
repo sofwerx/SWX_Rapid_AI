@@ -1,5 +1,6 @@
 processing_queue_size: 10
 useRapidX : true
+verboseLogging : false
 rabbitmq:
   exchange_name: "dragonfly"
   routing_key: "dragonfly.demo_entities"
