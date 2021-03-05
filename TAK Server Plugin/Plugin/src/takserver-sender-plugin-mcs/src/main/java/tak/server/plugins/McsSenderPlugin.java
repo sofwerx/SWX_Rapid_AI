@@ -55,6 +55,9 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 		if (config.containsProperty("processing_queue_size"))
 			_queueSize = (int)config.getProperty("processing_queue_size");
 
+		if (config.containsProperty("verboseLogging"))
+			VerboseLogging = (boolean)config.getProperty("verboseLogging");
+		
 		_blockingQueue = new LinkedBlockingDeque<>(_queueSize);
 		
 		_rabbitMqConsumer = new RabbitMQConsumer();
@@ -66,10 +69,6 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 	public void start() {
 		try {
 			_logger.info("Configuration Properties: " + config.getProperties());
-
-			if (config.containsProperty("verboseLogging")) {
-				VerboseLogging = (boolean)config.getProperty("verboseLogging");
-			}
 
 			setupConnection();
 		} 

@@ -10,7 +10,7 @@ namespace RabbitMQClient
     class Program
     {
         private static string EXCHANGE = "dragonfly";
-        private static string ROUTING_KEY = "dragonfly.entity_locations";
+        private static string ROUTING_KEY = "dragonfly.demo_entities";
         private static string RABBITMQ_HOSTNAME = "gsa.cognitics.net";
         private static string PASSWORD = "dragonfly";
         private static string USERNAME = "rapidx";
