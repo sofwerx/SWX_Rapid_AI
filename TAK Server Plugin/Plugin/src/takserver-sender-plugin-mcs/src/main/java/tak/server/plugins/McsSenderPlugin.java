@@ -55,8 +55,10 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 		if (config.containsProperty("processing_queue_size"))
 			_queueSize = (int)config.getProperty("processing_queue_size");
 
-		if (config.containsProperty("verboseLogging"))
+		if (config.containsProperty("verboseLogging")) {
 			VerboseLogging = (boolean)config.getProperty("verboseLogging");
+			_logger.info("VerboseLogging: " + VerboseLogging);
+		}
 		
 		_blockingQueue = new LinkedBlockingDeque<>(_queueSize);
 		

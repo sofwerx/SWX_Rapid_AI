@@ -76,6 +76,29 @@ public class McsCoTConverter {
             String jsonDetailData = detailJObject.toString();
             
             //Using org.json here for convenient json->xml serialization
+            //TODO - we need to take the JSON Detail data and instead of using json value = to xml value
+            //json value = xml attribute
+            /*
+                <detail>
+                    <uid Droid="TOPGUN"/>
+                </detail>
+                
+                is equivalent to 
+                
+                "detail": {
+		            "uid": {
+			            "Droid": "TOPGUN"
+		            }
+	            }
+
+                but right now generates
+                
+                <uid>
+                    <Droid>
+                        TOPGUN
+                    </Droid>
+                </uid>
+            */
             JSONObject detailJsonObject = new JSONObject(jsonDetailData);
 	    	String xmlDetailData = XML.toString(detailJsonObject);
             event.setDetail(xmlDetailData);

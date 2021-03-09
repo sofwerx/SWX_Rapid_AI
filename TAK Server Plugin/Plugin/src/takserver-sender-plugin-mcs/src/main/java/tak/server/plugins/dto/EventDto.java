@@ -1,5 +1,6 @@
 package tak.server.plugins.dto;
 
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 public class EventDto {
@@ -24,7 +25,7 @@ public class EventDto {
 	@SerializedName("point")
 	private PointDto _point = null;
 
-	private String _detail = null;
+    private transient String _detail = null;
 	
 	public String getUid() {
         return _uid;
