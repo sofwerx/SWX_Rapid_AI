@@ -14,7 +14,7 @@ namespace RabbitMQClient
         private static string RABBITMQ_HOSTNAME = "gsa.cognitics.net";
         private static string PASSWORD = "dragonfly";
         private static string USERNAME = "rapidx";
-        private static bool USE_RAPIDX = true;
+        private static bool USE_RAPIDX = false;
 
         private static string MESSAGE = "{\"uid\":\"ExampleCompany.12345-abcde-6789-fghij\",\"type\":\"a-f-G-U-C\",\"time\":\"1614187736429\",\"start\":\"1614187736429\",\"stale\":\"1614191352000\",\"how\":\"m-g\",\"point\":{\"lat\":\"39.0495\",\"lon\":\"-85.7445\",\"hae\":\"9999999\",\"ce\":\"9999999\",\"le\":\"9999999\"},\"detail\":{\"milsym2525C\":\"SFGPUCI*****\"}}";
 
@@ -57,7 +57,7 @@ namespace RabbitMQClient
                                         body: body);
 
                         Console.WriteLine(" [x] Sent {0}", message);
-                        await Task.Delay(1000);
+                        await Task.Delay(5000);
                     }
                 }
                 catch (Exception ex)
@@ -82,7 +82,7 @@ namespace RabbitMQClient
                 jObject["point"]["lon"] = newLon;
 
                 var currentIsoTime = DateTime.UtcNow.ToString("o");
-                var staleIsoTime = DateTimeOffset.UtcNow.AddMinutes(10).ToString("o");
+                var staleIsoTime = (DateTime.UtcNow + TimeSpan.FromMinutes(10)).ToString("o");
                 jObject["time"] = currentIsoTime;
                 jObject["start"] = currentIsoTime;
                 jObject["stale"] = staleIsoTime;
