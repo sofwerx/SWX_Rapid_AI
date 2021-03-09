@@ -10,13 +10,13 @@ public class EventDto {
 	private String _type = "";
 	
 	@SerializedName("time")
-	private Long _time = -1L;
+	private String _time = "";
 
 	@SerializedName("start")
-	private Long _start = -1L;
+	private String _start = "";
 
 	@SerializedName("stale")
-	private Long _stale = -1L;
+	private String _stale = "";
 
 	@SerializedName("how")
 	private String _how = "";
@@ -42,27 +42,27 @@ public class EventDto {
        _type = type;
     }
     
-    public Long getTime() {
+    public String getTime() {
         return _time;
     }
 
-    public void setTime(Long time) {
+    public void setTime(String time) {
        _time = time;
     }
     
-    public Long getStart() {
+    public String getStart() {
         return _start;
     }
 
-    public void setStart(Long start) {
+    public void setStart(String start) {
        _start = start;
     }
     
-    public Long getStale() {
+    public String getStale() {
         return _stale;
     }
 
-    public void setStale(Long stale) {
+    public void setStale(String stale) {
        _stale = stale;
     }
     

@@ -1,6 +1,7 @@
 package tak.server.plugins.utilities;
 
 import java.util.List;
+import java.time.Instant;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -17,15 +18,19 @@ import atakmap.commoncommo.protobuf.v1.DetailOuterClass;
 
 import org.json.JSONObject;
 import org.json.XML;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class McsCoTConverter {
+    
+    private static final Logger _logger = LoggerFactory.getLogger(McsCoTConverter.class);
     
     public static Message convertToMessage(EventDto event, PluginConfiguration configuration) {
         Message.Builder messageBuilder = MessageOuterClass.Message.newBuilder();
 		TakMessage.Builder payloadBuilder = messageBuilder.getPayloadBuilder();
 		CotEvent.Builder cotEventBuilder = payloadBuilder.getCotEventBuilder();
 		DetailOuterClass.Detail.Builder detailBuilder = cotEventBuilder.getDetailBuilder();
-		
+        		
         @SuppressWarnings("unchecked")
 		List<String> callsigns = (List<String>) configuration.getProperty("callsigns");
 
@@ -35,9 +40,10 @@ public class McsCoTConverter {
 		cotEventBuilder.setUid(event.getUid());
 		cotEventBuilder.setType(event.getType());
 		cotEventBuilder.setHow(event.getHow());
-		cotEventBuilder.setSendTime(event.getTime());
-		cotEventBuilder.setStartTime(event.getStart());
-		cotEventBuilder.setStaleTime(event.getStale());
+        
+		cotEventBuilder.setSendTime(convertTime(event.getTime()));
+		cotEventBuilder.setStartTime(convertTime(event.getStart()));
+		cotEventBuilder.setStaleTime(convertTime(event.getStale()));
 		cotEventBuilder.setLat(event.getPoint().getLat());
 		cotEventBuilder.setLon(event.getPoint().getLon());
 		cotEventBuilder.setHae(event.getPoint().getHae());
@@ -76,5 +82,19 @@ public class McsCoTConverter {
         }
         
         return event;
+    }
+
+    private static Long convertTime(String time) {
+        // CoT Protobuf uses "timeMs" units, which is number of milliseconds since
+        // 1970-01-01 00:00:00 UTC
+        Long timeMs = 0L;
+        try {
+            Instant instant = Instant.parse( time );
+            timeMs = instant.toEpochMilli() ;
+        } catch (Exception e) {
+            _logger.error("Error parsing time", e);
+        }
+        
+        return timeMs;
     }
 }

@@ -81,11 +81,11 @@ namespace RabbitMQClient
                 jObject["point"]["lat"] = newLat;
                 jObject["point"]["lon"] = newLon;
 
-                var currentUnixTimeMs = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                var staleUnixTimeMs = DateTimeOffset.Now.AddMinutes(10).ToUnixTimeMilliseconds();
-                jObject["time"] = currentUnixTimeMs;
-                jObject["start"] = currentUnixTimeMs;
-                jObject["stale"] = staleUnixTimeMs;
+                var currentIsoTime = DateTime.UtcNow.ToString("o");
+                var staleIsoTime = DateTimeOffset.UtcNow.AddMinutes(10).ToString("o");
+                jObject["time"] = currentIsoTime;
+                jObject["start"] = currentIsoTime;
+                jObject["stale"] = staleIsoTime;
 
                 return jObject.ToString(Formatting.None);
             }
