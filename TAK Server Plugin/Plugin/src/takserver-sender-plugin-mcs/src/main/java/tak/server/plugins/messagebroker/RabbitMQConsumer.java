@@ -18,7 +18,8 @@ import tak.server.plugins.McsSenderPlugin;
 public class RabbitMQConsumer {
     private MessageProducer _producer;
     private String _exchangeName = "dragonfly";
-    private List<String> _routingKeys = new ArrayList<String>();
+    private String _entityRoutingKey = "dragonfly.demo_entities";
+    private String _eventRoutingKey = "dragonfly.events";
     private String _rabbitHost = "some-rabbit";
     private String _password = "some-password";
     private String _username = "some-username";
@@ -52,15 +53,15 @@ public class RabbitMQConsumer {
             _channel.exchangeDeclare(_exchangeName, "topic", true);
             String queueName = _channel.queueDeclare().getQueue();
 
-            for (String routingKey : _routingKeys) {
-                _channel.queueBind(queueName, _exchangeName, routingKey);
-            }
-            
+            _channel.queueBind(queueName, _exchangeName, _eventRoutingKey);
+            _channel.queueBind(queueName, _exchangeName, _entityRoutingKey);
+
             DeliverCallback deliverCallback = (consumerTag, delivery) -> {
                 String message = new String(delivery.getBody(), "UTF-8");
+                String topic = delivery.getEnvelope().getRoutingKey(); 
                 if (McsSenderPlugin.VerboseLogging)
-                    logger.info("Msg Received '" + delivery.getEnvelope().getRoutingKey() + "':'" + message + "'");
-                _producer.AddMessage(message);
+                    logger.info("Msg Received '" + topic + "':'" + message + "'");
+                _producer.AddMessage(topic, message);
             };
 
             _consumerTag = _channel.basicConsume(queueName, true, deliverCallback, consumerTag -> { });
@@ -76,6 +77,16 @@ public class RabbitMQConsumer {
         if (_channel != null) _channel.basicCancel(_consumerTag);
     }
 
+    public Boolean isEntityKey(String key)
+    {
+        return key.equals(_entityRoutingKey);
+    }
+
+    public Boolean isEventKey(String key)
+    {
+        return key.equals(_eventRoutingKey);
+    }
+
     private void SetupConfiguration(PluginConfiguration configuration) {
         logger.info("Reading configuration");
 
@@ -83,14 +94,14 @@ public class RabbitMQConsumer {
             _exchangeName = (String)configuration.getProperty("rabbitmq.exchange_name");
         }
 
-        if (configuration.containsProperty("routing_keys")) {
-            _routingKeys = (List<String>)configuration.getProperty("routing_keys");
-        }
-        else{
-            String all = "dragonfly.*";
-            _routingKeys.add(all);
+        if (configuration.containsProperty("rabbitmq.entityKey")) {
+            _entityRoutingKey = (String)configuration.getProperty("rabbitmq.entityKey");
         }
 
+        if (configuration.containsProperty("rabbitmq.eventKey")) {
+            _eventRoutingKey = (String)configuration.getProperty("rabbitmq.eventKey");
+        }
+        
         if (configuration.containsProperty("rabbitmq.hostname")) {
             _rabbitHost = (String)configuration.getProperty("rabbitmq.hostname");
         }

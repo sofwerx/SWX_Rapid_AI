@@ -1,5 +1,5 @@
 package tak.server.plugins.interfaces;
 
 public interface MessageCallback {
-    void messageReceived(String message);
+    void messageReceived(String topic, String message);
 }

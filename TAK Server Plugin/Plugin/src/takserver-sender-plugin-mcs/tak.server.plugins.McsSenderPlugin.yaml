@@ -6,7 +6,6 @@ rabbitmq:
   hostname: "gsa.cognitics.net"
   username: "rapidx"
   password: "dragonfly"
-routing_keys:
-  - "dragonfly.demo_entities"
-  - "dragonfly.events"
+  entityKey: "dragonfly.demo_entities"
+  eventKey: "dragonfly.events"
   

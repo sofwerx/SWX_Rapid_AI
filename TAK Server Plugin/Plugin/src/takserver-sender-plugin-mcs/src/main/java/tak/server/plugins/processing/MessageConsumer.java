@@ -13,12 +13,12 @@ import tak.server.plugins.interfaces.*;
 
 public class MessageConsumer {
     private ExecutorService _executor;
-    private BlockingQueue<String> _queue;
+    private BlockingQueue<ProcessingMessage> _queue;
     private static final Logger _logger = LoggerFactory.getLogger(MessageConsumer.class);
     private MessageCallback _callback;
     private AtomicBoolean _running = new AtomicBoolean(false);
 
-    public MessageConsumer(ExecutorService executorService, BlockingQueue<String> queue, MessageCallback callback) {
+    public MessageConsumer(ExecutorService executorService, BlockingQueue<ProcessingMessage> queue, MessageCallback callback) {
         _executor = executorService;
         _queue = queue;
         _callback = callback;
@@ -34,10 +34,10 @@ public class MessageConsumer {
         Runnable consumerTask = () -> {
             try {
                 while(_running.get()) {
-                    String message = _queue.take();
+                    ProcessingMessage message = _queue.take();
                     if (McsSenderPlugin.VerboseLogging)
                         _logger.info("message received in consumer sending to callback");
-                    _callback.messageReceived(message);
+                    _callback.messageReceived(message.topic, message.payload);
                 }
             } 
             catch (InterruptedException e) {

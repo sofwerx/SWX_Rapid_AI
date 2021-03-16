@@ -10,10 +10,10 @@ import org.slf4j.LoggerFactory;
 public class MessageProducer {
     
     private ExecutorService _executor;
-    private BlockingQueue<String> _queue;
+    private BlockingQueue<ProcessingMessage> _queue;
     private static final Logger _logger = LoggerFactory.getLogger(MessageProducer.class);
     
-    public MessageProducer(ExecutorService executorService, BlockingQueue<String> queue) {
+    public MessageProducer(ExecutorService executorService, BlockingQueue<ProcessingMessage> queue) {
         _executor = executorService;
         _queue = queue;
     }
@@ -28,10 +28,10 @@ public class MessageProducer {
         _logger.info("Stopping MessageProducer");
     }
 
-    public void AddMessage(String message) {
+    public void AddMessage(String topic, String message) {
         Runnable producerTask = () -> {
             try {
-                _queue.put(message);
+                _queue.put(new ProcessingMessage(topic, message));
             }
             catch (InterruptedException e) {
                 _logger.info("thread interrupted", e);

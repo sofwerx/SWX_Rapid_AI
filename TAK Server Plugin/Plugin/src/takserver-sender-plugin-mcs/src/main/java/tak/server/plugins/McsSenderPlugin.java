@@ -28,6 +28,7 @@ import tak.server.plugins.interfaces.MessageCallback;
 import tak.server.plugins.messagebroker.RabbitMQConsumer;
 import tak.server.plugins.processing.MessageConsumer;
 import tak.server.plugins.processing.MessageProducer;
+import tak.server.plugins.processing.ProcessingMessage;
 import tak.server.plugins.utilities.McsCoTConverter;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -43,7 +44,7 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 	private RabbitMQConsumer _rabbitMqConsumer;
 	private MessageProducer _messageProducer;
 	private MessageConsumer _messageConsumer;
-	private BlockingQueue<String> _blockingQueue; 
+	private BlockingQueue<ProcessingMessage> _blockingQueue; 
     private ExecutorService _executor = Executors.newFixedThreadPool(2);
 
 	public static Boolean VerboseLogging = false;
@@ -99,8 +100,10 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 	}
 
 	@Override
-	public void messageReceived(String message){
+	public void messageReceived(String topic, String message){
 		try {
+			if(!_rabbitMqConsumer.isEntityKey(topic)) return; 
+
 			EntityDto event = McsCoTConverter.convertToEvent(message, config);
 			if (event == null){
 				_logger.error("error converting message to event");
