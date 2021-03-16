@@ -2,7 +2,7 @@ package tak.server.plugins.dto;
 
 import com.google.gson.annotations.SerializedName;
 
-public class AlertDto {
+public class EventDto {
     @SerializedName("cot_uid")
 	private String _uid = "";
 

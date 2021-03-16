@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import atakmap.commoncommo.protobuf.v1.MessageOuterClass.Message;
+import tak.server.plugins.dto.EventDto;
 import tak.server.plugins.dto.EntityDto;
 import tak.server.plugins.interfaces.MessageCallback;
 import tak.server.plugins.messagebroker.RabbitMQConsumer;
@@ -102,23 +103,37 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 	@Override
 	public void messageReceived(String topic, String message){
 		try {
-			if(!_rabbitMqConsumer.isEntityKey(topic)) return; 
+			Message takMessage = null;
+			if(_rabbitMqConsumer.isEntityKey(topic)) { 
 
-			EntityDto event = McsCoTConverter.convertToEvent(message, config);
-			if (event == null){
-				_logger.error("error converting message to event");
-				return;
+				EntityDto entity = McsCoTConverter.convertToEntity(message, config);
+				if (entity == null){
+					_logger.error("error converting message to event");
+					return;
+				}
+
+				takMessage = McsCoTConverter.convertToMessage(entity, config);
 			}
 
-			Message takMessage = McsCoTConverter.convertToMessage(event, config);
-			if (message == null){
+			if(_rabbitMqConsumer.isEventKey(topic)) { 
+
+				EventDto event = McsCoTConverter.convertToEvent(message, config);
+				if (event == null){
+					_logger.error("error converting message to event");
+					return;
+				}
+
+				takMessage = McsCoTConverter.convertToMessage(event, config);
+			}
+
+			if (takMessage == null){
 				_logger.error("error converting event to protobuf message");
 				return;
 			}
 
 			if(VerboseLogging)
 				_logger.info("TAK message converted: " + takMessage);
-			
+				
 			send(takMessage);
 		} catch (Exception exception) {
 			_logger.error("error converting message ", message, exception);

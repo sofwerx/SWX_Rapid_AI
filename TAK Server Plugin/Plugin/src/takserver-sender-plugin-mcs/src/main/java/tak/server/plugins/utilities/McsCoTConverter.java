@@ -12,7 +12,7 @@ import atakmap.commoncommo.protobuf.v1.MessageOuterClass;
 import atakmap.commoncommo.protobuf.v1.MessageOuterClass.Message;
 import atakmap.commoncommo.protobuf.v1.Takmessage.TakMessage;
 import tak.server.plugins.PluginConfiguration;
-import tak.server.plugins.dto.AlertDto;
+import tak.server.plugins.dto.EventDto;
 import tak.server.plugins.dto.EntityDto;
 import atakmap.commoncommo.protobuf.v1.Cotevent.CotEvent;
 import atakmap.commoncommo.protobuf.v1.DetailOuterClass;
@@ -27,7 +27,7 @@ public class McsCoTConverter {
     private static final Logger _logger = LoggerFactory.getLogger(McsCoTConverter.class);
     public static final String FROM_MCS = "fromMcs";
     
-    public static Message convertToMessage(AlertDto alert, PluginConfiguration configuration) {
+    public static Message convertToMessage(EventDto event, PluginConfiguration configuration) {
         Message.Builder messageBuilder = MessageOuterClass.Message.newBuilder();
 		TakMessage.Builder payloadBuilder = messageBuilder.getPayloadBuilder();
 		CotEvent.Builder cotEventBuilder = payloadBuilder.getCotEventBuilder();
@@ -39,7 +39,7 @@ public class McsCoTConverter {
 		@SuppressWarnings("unchecked")
 		List<String> uids = (List<String>) configuration.getProperty("uids");
 
-        cotEventBuilder.setUid(alert.getUid());
+        cotEventBuilder.setUid(event.getUid());
 		
         //TEMP stuff - Not in MCS Demo Alert schema
         Instant instant = Instant.now();
@@ -60,8 +60,8 @@ public class McsCoTConverter {
 
         //Hack to add message, type in CoT details 
         JSONObject detailJsonObject = new JSONObject();
-        detailJsonObject.put("message", alert.getMessage());
-        detailJsonObject.put("type", alert.getType());
+        detailJsonObject.put("message", event.getMessage());
+        detailJsonObject.put("type", event.getType());
         String xmlDetailData = XML.toString(detailJsonObject);
         detailBuilder.setXmlDetail(xmlDetailData);
 
@@ -108,9 +108,9 @@ public class McsCoTConverter {
         return messageBuilder.build();
     }
 
-    public static AlertDto convertToAlert(String json, PluginConfiguration configuration) {
+    public static EventDto convertToEvent(String json, PluginConfiguration configuration) {
         Gson gson = new Gson();
-        AlertDto alert = gson.fromJson(json, AlertDto.class);
+        EventDto alert = gson.fromJson(json, EventDto.class);
         
         JsonElement element = JsonParser.parseString(json);
         JsonObject jObject = element.getAsJsonObject();
@@ -118,7 +118,7 @@ public class McsCoTConverter {
         return alert;
     }
 
-    public static EntityDto convertToEvent(String json, PluginConfiguration configuration) {
+    public static EntityDto convertToEntity(String json, PluginConfiguration configuration) {
         Gson gson = new Gson();
         EntityDto event = gson.fromJson(json, EntityDto.class);
         
