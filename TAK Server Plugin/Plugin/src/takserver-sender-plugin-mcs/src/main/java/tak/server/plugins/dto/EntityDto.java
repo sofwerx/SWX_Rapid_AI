@@ -3,7 +3,7 @@ package tak.server.plugins.dto;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class EventDto {
+public class EntityDto {
     @SerializedName("uid")
 	private String _uid = "";
 	

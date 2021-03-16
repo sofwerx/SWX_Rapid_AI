@@ -1,5 +1,8 @@
 package tak.server.plugins.messagebroker;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -15,7 +18,7 @@ import tak.server.plugins.McsSenderPlugin;
 public class RabbitMQConsumer {
     private MessageProducer _producer;
     private String _exchangeName = "dragonfly";
-    private String _routingKey = "dragonfly.*";
+    private List<String> _routingKeys = new ArrayList<String>();
     private String _rabbitHost = "some-rabbit";
     private String _password = "some-password";
     private String _username = "some-username";
@@ -48,9 +51,11 @@ public class RabbitMQConsumer {
     
             _channel.exchangeDeclare(_exchangeName, "topic", true);
             String queueName = _channel.queueDeclare().getQueue();
-            _channel.queueBind(queueName, _exchangeName, _routingKey);
 
-
+            for (String routingKey : _routingKeys) {
+                _channel.queueBind(queueName, _exchangeName, routingKey);
+            }
+            
             DeliverCallback deliverCallback = (consumerTag, delivery) -> {
                 String message = new String(delivery.getBody(), "UTF-8");
                 if (McsSenderPlugin.VerboseLogging)
@@ -78,8 +83,12 @@ public class RabbitMQConsumer {
             _exchangeName = (String)configuration.getProperty("rabbitmq.exchange_name");
         }
 
-        if (configuration.containsProperty("rabbitmq.routing_key")) {
-            _routingKey = (String)configuration.getProperty("rabbitmq.routing_key");
+        if (configuration.containsProperty("routing_keys")) {
+            _routingKeys = (List<String>)configuration.getProperty("routing_keys");
+        }
+        else{
+            String all = "dragonfly.*";
+            _routingKeys.add(all);
         }
 
         if (configuration.containsProperty("rabbitmq.hostname")) {

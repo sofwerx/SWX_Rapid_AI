@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import atakmap.commoncommo.protobuf.v1.MessageOuterClass.Message;
-import tak.server.plugins.dto.EventDto;
+import tak.server.plugins.dto.EntityDto;
 import tak.server.plugins.interfaces.MessageCallback;
 import tak.server.plugins.messagebroker.RabbitMQConsumer;
 import tak.server.plugins.processing.MessageConsumer;
@@ -101,7 +101,7 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 	@Override
 	public void messageReceived(String message){
 		try {
-			EventDto event = McsCoTConverter.convertToEvent(message, config);
+			EntityDto event = McsCoTConverter.convertToEvent(message, config);
 			if (event == null){
 				_logger.error("error converting message to event");
 				return;

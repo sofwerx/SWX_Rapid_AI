@@ -20,24 +20,24 @@ import atakmap.commoncommo.protobuf.v1.Cotevent.CotEvent;
 import atakmap.commoncommo.protobuf.v1.MessageOuterClass.Message;
 import atakmap.commoncommo.protobuf.v1.Takmessage.TakMessage;
 
-import tak.server.plugins.dto.EventDto;
+import tak.server.plugins.dto.EntityDto;
 import tak.server.plugins.dto.PointDto;
 
 public class CoTMcsConverter {
     private static final Logger _logger = LoggerFactory.getLogger(CoTMcsConverter.class);
 
-    public static EventDto convertToEventDto(Message message) {
+    public static EntityDto convertToEntityDto(Message message) {
         TakMessage takMessage = message.getPayload();
         CotEvent cotEvent = takMessage.getCotEvent();
-        EventDto eventDto = new EventDto();
+        EntityDto EntityDto = new EntityDto();
         
-        eventDto.setUid(cotEvent.getUid());
-        eventDto.setType(cotEvent.getType());
-        eventDto.setHow(cotEvent.getHow());
-        eventDto.setTime(convertTime(cotEvent.getSendTime()));
-        eventDto.setStart(convertTime(cotEvent.getStartTime()));
-        eventDto.setStale(convertTime(cotEvent.getStaleTime()));
-        eventDto.setHow(cotEvent.getHow());
+        EntityDto.setUid(cotEvent.getUid());
+        EntityDto.setType(cotEvent.getType());
+        EntityDto.setHow(cotEvent.getHow());
+        EntityDto.setTime(convertTime(cotEvent.getSendTime()));
+        EntityDto.setStart(convertTime(cotEvent.getStartTime()));
+        EntityDto.setStale(convertTime(cotEvent.getStaleTime()));
+        EntityDto.setHow(cotEvent.getHow());
 
         PointDto pointDto = new PointDto();
         pointDto.setLat(cotEvent.getLat());
@@ -45,20 +45,32 @@ public class CoTMcsConverter {
         pointDto.setCe(cotEvent.getCe());
         pointDto.setHae(cotEvent.getHae());
         pointDto.setLe(cotEvent.getLe());
-        eventDto.setPoint(pointDto);
+        EntityDto.setPoint(pointDto);
 
         //Detail
-        eventDto.setDetail(cotEvent.getDetail().getXmlDetail());
+        EntityDto.setDetail(cotEvent.getDetail().getXmlDetail());
         
-        return eventDto;
+        return EntityDto;
     }
 
-    public static String convertToJson(EventDto eventDto) {
+    public static Boolean messageFromSender(Message message) {
+        Boolean fromSender = false;
+        try {
+                TakMessage takMessage = message.getPayload();
+                CotEvent cotEvent = takMessage.getCotEvent();
+                fromSender = cotEvent.getDetail().getXmlDetail().contains(McsCoTConverter.FROM_MCS);
+        } catch (Exception e) {
+            //Do Nothing
+        }
+        return fromSender;
+    }
+
+    public static String convertToJson(EntityDto EntityDto) {
         Gson gson = new Gson();
-        JsonElement element = JsonParser.parseString(gson.toJson(eventDto));
+        JsonElement element = JsonParser.parseString(gson.toJson(EntityDto));
         
         //Using org.json here for convenient xml-> serialization
-        JSONObject detailDataJsonObject = XML.toJSONObject(eventDto.getDetail());
+        JSONObject detailDataJsonObject = XML.toJSONObject(EntityDto.getDetail());
         String detailJson = detailDataJsonObject.toString();
         
         //Back to gson
