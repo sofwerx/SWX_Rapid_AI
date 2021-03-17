@@ -46,8 +46,8 @@ public class McsCoTConverter {
         Long timeMs = instant.toEpochMilli() ;
         Long staleMs = timeMs + (5 * 60 * 1000); //Five minutes
         
-        cotEventBuilder.setType("b-i-v");
-		cotEventBuilder.setHow("i-v");
+        cotEventBuilder.setType("b-i-d-m");
+		cotEventBuilder.setHow("m-r");
 
 		cotEventBuilder.setSendTime(timeMs);
 		cotEventBuilder.setStartTime(timeMs);
@@ -62,13 +62,15 @@ public class McsCoTConverter {
         JSONObject detailJsonObject = new JSONObject();
         detailJsonObject.put("message", event.getMessage());
         detailJsonObject.put("type", event.getType());
+        detailJsonObject.put("remarks", event.getType() + " " + event.getMessage());
+        detailJsonObject.put(FROM_MCS, "true");
         String xmlDetailData = XML.toString(detailJsonObject);
         detailBuilder.setXmlDetail(xmlDetailData);
 
         return messageBuilder.build();
     }
 
-    public static Message convertToMessage(EntityDto event, PluginConfiguration configuration) {
+    public static Message convertToMessage(EntityDto entity, PluginConfiguration configuration) {
         Message.Builder messageBuilder = MessageOuterClass.Message.newBuilder();
 		TakMessage.Builder payloadBuilder = messageBuilder.getPayloadBuilder();
 		CotEvent.Builder cotEventBuilder = payloadBuilder.getCotEventBuilder();
@@ -80,20 +82,20 @@ public class McsCoTConverter {
 		@SuppressWarnings("unchecked")
 		List<String> uids = (List<String>) configuration.getProperty("uids");
         
-		cotEventBuilder.setUid(event.getUid());
-		cotEventBuilder.setType(event.getType());
-		cotEventBuilder.setHow(event.getHow());
+		cotEventBuilder.setUid(entity.getUid());
+		cotEventBuilder.setType(entity.getType());
+		cotEventBuilder.setHow(entity.getHow());
         
-		cotEventBuilder.setSendTime(convertTime(event.getTime()));
-		cotEventBuilder.setStartTime(convertTime(event.getStart()));
-		cotEventBuilder.setStaleTime(convertTime(event.getStale()));
-		cotEventBuilder.setLat(event.getPoint().getLat());
-		cotEventBuilder.setLon(event.getPoint().getLon());
-		cotEventBuilder.setHae(event.getPoint().getHae());
-		cotEventBuilder.setCe(event.getPoint().getCe());
-		cotEventBuilder.setLe(event.getPoint().getLe());
+		cotEventBuilder.setSendTime(convertTime(entity.getTime()));
+		cotEventBuilder.setStartTime(convertTime(entity.getStart()));
+		cotEventBuilder.setStaleTime(convertTime(entity.getStale()));
+		cotEventBuilder.setLat(entity.getPoint().getLat());
+		cotEventBuilder.setLon(entity.getPoint().getLon());
+		cotEventBuilder.setHae(entity.getPoint().getHae());
+		cotEventBuilder.setCe(entity.getPoint().getCe());
+		cotEventBuilder.setLe(entity.getPoint().getLe());
 
-	    detailBuilder.setXmlDetail(event.getDetail());
+	    detailBuilder.setXmlDetail(entity.getDetail());
 
         if (callsigns != null && !callsigns.isEmpty()) {
 
@@ -110,12 +112,12 @@ public class McsCoTConverter {
 
     public static EventDto convertToEvent(String json, PluginConfiguration configuration) {
         Gson gson = new Gson();
-        EventDto alert = gson.fromJson(json, EventDto.class);
+        EventDto event = gson.fromJson(json, EventDto.class);
         
         JsonElement element = JsonParser.parseString(json);
         JsonObject jObject = element.getAsJsonObject();
         
-        return alert;
+        return event;
     }
 
     public static EntityDto convertToEntity(String json, PluginConfiguration configuration) {
@@ -169,7 +171,7 @@ public class McsCoTConverter {
             Instant instant = Instant.parse( time );
             timeMs = instant.toEpochMilli() ;
         } catch (Exception e) {
-            _logger.error("Error parsing time", e);
+            _logger.error("Error parsing time " + time, e);
         }
         
         return timeMs;

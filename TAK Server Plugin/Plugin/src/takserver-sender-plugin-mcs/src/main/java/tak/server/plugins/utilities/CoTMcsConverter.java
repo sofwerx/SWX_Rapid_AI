@@ -90,7 +90,7 @@ public class CoTMcsConverter {
             Instant instant = Instant.ofEpochMilli( time );
             timeIso = formatter.format( instant );
         } catch (Exception e) {
-            _logger.error("Error parsing time", e);
+            _logger.error("Error parsing time " + time.toString(), e);
         }
         
         return timeIso;
