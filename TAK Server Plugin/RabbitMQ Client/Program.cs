@@ -11,12 +11,15 @@ namespace RabbitMQClient
     {
         private static string EXCHANGE = "dragonfly";
         private static string ROUTING_KEY = "dragonfly.demo_entities";
+        private static string EVENT_ROUTING_KEY = "dragonfly.events";
         private static string RABBITMQ_HOSTNAME = "gsa.cognitics.net";
         private static string PASSWORD = "dragonfly";
         private static string USERNAME = "rapidx";
-        private static bool USE_RAPIDX = false;
+        private static bool USE_RAPIDX = true;
 
         private static string MESSAGE = "{\"uid\":\"ExampleCompany.12345-abcde-6789-fghij\",\"type\":\"a-f-G-U-C\",\"time\":\"1614187736429\",\"start\":\"1614187736429\",\"stale\":\"1614191352000\",\"how\":\"m-g\",\"point\":{\"lat\":\"39.0495\",\"lon\":\"-85.7445\",\"hae\":\"9999999\",\"ce\":\"9999999\",\"le\":\"9999999\"},\"detail\":{\"milsym2525C\":\"SFGPUCI*****\"}}";
+
+        private static string EVENT_MESSAGE = "{\"cot_uid\":\"b5034f03-b209-47a8-aa39-31d32e8ee337\",\"message\":\"This is a demo alert\",\"type\":\"warning\"}";
 
         private static Random _random = new Random();
         private static double MIN_LAT = 39.04;
@@ -37,15 +40,16 @@ namespace RabbitMQClient
             }
             else 
                 factory.HostName = "localhost";
-                        
+
+            using var connection = factory.CreateConnection();
+            using var channel = connection.CreateModel();
+            channel.ExchangeDeclare(EXCHANGE, ExchangeType.Topic, true);
+
+            //Entities
             Task.Run(async () =>
             {
                 try
                 {
-                    using var connection = factory.CreateConnection();
-                    using var channel = connection.CreateModel();
-                    channel.ExchangeDeclare(EXCHANGE, ExchangeType.Topic, true);
-
                     while (true)
                     {
                         var message = MassageMessage(MESSAGE);
@@ -57,6 +61,30 @@ namespace RabbitMQClient
                                         body: body);
 
                         Console.WriteLine(" [x] Sent {0}", message);
+                        await Task.Delay(10000);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            });
+
+            //Events
+            Task.Run(async () =>
+            {
+                try
+                {
+                    while (true)
+                    {
+                        var body = Encoding.UTF8.GetBytes(EVENT_MESSAGE);
+
+                        channel.BasicPublish(exchange: EXCHANGE,
+                                        routingKey: EVENT_ROUTING_KEY,
+                                        basicProperties: null,
+                                        body: body);
+
+                        Console.WriteLine(" [x] Sent {0}", EVENT_MESSAGE);
                         await Task.Delay(5000);
                     }
                 }
