@@ -69,8 +69,14 @@ public class McsLoggerReceiverPlugin extends MessageReceiverBase implements Publ
 
 		if(CoTMcsConverter.messageFromSender(message)) {
 			if (VerboseLogging)
-				_logger.info("Message is from TAK Plugin");
+				_logger.info("Message originated from TAK Plugin");
 				//Bail - TODO it would be nice maybe to check flowtags or something else
+			return;
+		}
+
+		if(CoTMcsConverter.messageIsPing(message)){
+			if (VerboseLogging)
+				_logger.info("Ping message from TAK Client, skipping");
 			return;
 		}
 		

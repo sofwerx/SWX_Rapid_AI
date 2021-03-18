@@ -176,4 +176,8 @@ public class McsCoTConverter {
         
         return timeMs;
     }
+
+    public static Boolean messageIsFromPlugin(String message) {
+        return message.contains(CoTMcsConverter.FROM_TAK);
+    }
 }

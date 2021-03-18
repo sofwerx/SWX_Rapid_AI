@@ -25,6 +25,7 @@ import tak.server.plugins.dto.PointDto;
 
 public class CoTMcsConverter {
     private static final Logger _logger = LoggerFactory.getLogger(CoTMcsConverter.class);
+    public static final String FROM_TAK = "fromTAK";
 
     public static EntityDto convertToEntityDto(Message message) {
         TakMessage takMessage = message.getPayload();
@@ -53,6 +54,40 @@ public class CoTMcsConverter {
         return EntityDto;
     }
 
+    public static String convertToJson(EntityDto EntityDto) {
+        Gson gson = new Gson();
+        JsonElement element = JsonParser.parseString(gson.toJson(EntityDto));
+        
+        //Using org.json here for convenient xml-> serialization
+        JSONObject detailDataJsonObject = XML.toJSONObject(EntityDto.getDetail());
+        detailDataJsonObject.put(FROM_TAK, "true");
+        String detailJson = detailDataJsonObject.toString();
+        
+        //Back to gson
+        JsonElement detailJobject = JsonParser.parseString(detailJson);        
+        JsonObject jObject = element.getAsJsonObject();
+        jObject.add("detail", detailJobject);
+
+
+        
+        return jObject.toString();
+    }
+
+    private static String convertTime(Long time) {
+        // CoT Protobuf uses "timeMs" units, which is number of milliseconds since
+        // 1970-01-01 00:00:00 UTC
+        String timeIso = "1970-01-01 00:00:00 UTC";
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
+            Instant instant = Instant.ofEpochMilli( time );
+            timeIso = formatter.format( instant );
+        } catch (Exception e) {
+            _logger.error("Error parsing time " + time.toString(), e);
+        }
+        
+        return timeIso;
+    }
+
     public static Boolean messageFromSender(Message message) {
         Boolean fromSender = false;
         try {
@@ -65,34 +100,15 @@ public class CoTMcsConverter {
         return fromSender;
     }
 
-    public static String convertToJson(EntityDto EntityDto) {
-        Gson gson = new Gson();
-        JsonElement element = JsonParser.parseString(gson.toJson(EntityDto));
-        
-        //Using org.json here for convenient xml-> serialization
-        JSONObject detailDataJsonObject = XML.toJSONObject(EntityDto.getDetail());
-        String detailJson = detailDataJsonObject.toString();
-        
-        //Back to gson
-        JsonElement detailJobject = JsonParser.parseString(detailJson);        
-        JsonObject jObject = element.getAsJsonObject();
-        jObject.add("detail", detailJobject);
-        
-        return jObject.toString();
-    }
-
-    private static String convertTime(Long time) {
-        // CoT Protobuf uses "timeMs" units, which is number of milliseconds since
-        // 1970-01-01 00:00:00 UTC
-        String timeIso = "1970-01-01 00:00:00 UTC";
+    public static Boolean messageIsPing(Message message) {
+        Boolean isPing = false;
         try {
-            DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.from(ZoneOffset.UTC));
-            Instant instant = Instant.ofEpochMilli( time );
-            timeIso = formatter.format( instant );
+                TakMessage takMessage = message.getPayload();
+                CotEvent cotEvent = takMessage.getCotEvent();
+                isPing = cotEvent.getUid().contains("ping");
         } catch (Exception e) {
-            _logger.error("Error parsing time " + time.toString(), e);
+            //Do Nothing
         }
-        
-        return timeIso;
+        return isPing;
     }
 }

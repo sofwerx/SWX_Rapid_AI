@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tak.server.plugins.processing.*;
+import tak.server.plugins.utilities.McsCoTConverter;
 import tak.server.plugins.PluginConfiguration;
 import tak.server.plugins.McsSenderPlugin;
 
@@ -62,6 +63,10 @@ public class RabbitMQClient {
                 String topic = delivery.getEnvelope().getRoutingKey(); 
                 if (McsSenderPlugin.VerboseLogging)
                     logger.info("Msg Received '" + topic + "':'" + message + "'");
+                
+                if (McsCoTConverter.messageIsFromPlugin(message))
+                    return;
+                    
                 _producer.AddMessage(topic, message);
             };
 
@@ -93,6 +98,9 @@ public class RabbitMQClient {
         if (!_channel.isOpen()) return;
 
         try {
+            if (McsSenderPlugin.VerboseLogging)
+            logger.info("Publishing to " + _entityRoutingKey + " message: " + message);
+
             byte[] entityBytes = message.getBytes(StandardCharsets.UTF_8);
             _channel.basicPublish(_exchangeName, _entityRoutingKey, null, entityBytes);
         }
