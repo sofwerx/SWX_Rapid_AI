@@ -26,10 +26,11 @@ import atakmap.commoncommo.protobuf.v1.MessageOuterClass.Message;
 import tak.server.plugins.dto.EventDto;
 import tak.server.plugins.dto.EntityDto;
 import tak.server.plugins.interfaces.MessageCallback;
-import tak.server.plugins.messagebroker.RabbitMQConsumer;
+import tak.server.plugins.messagebroker.RabbitMQClient;
 import tak.server.plugins.processing.MessageConsumer;
 import tak.server.plugins.processing.MessageProducer;
 import tak.server.plugins.processing.ProcessingMessage;
+import tak.server.plugins.utilities.BrokerHelper;
 import tak.server.plugins.utilities.McsCoTConverter;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -42,7 +43,7 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 	private static int _queueSize = 10;
 
 	private static final Logger _logger = LoggerFactory.getLogger(McsSenderPlugin.class);
-	private RabbitMQConsumer _rabbitMqConsumer;
+	private RabbitMQClient _rabbitMqConsumer;
 	private MessageProducer _messageProducer;
 	private MessageConsumer _messageConsumer;
 	private BlockingQueue<ProcessingMessage> _blockingQueue; 
@@ -64,7 +65,7 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 		
 		_blockingQueue = new LinkedBlockingDeque<>(_queueSize);
 		
-		_rabbitMqConsumer = new RabbitMQConsumer();
+		_rabbitMqConsumer = new RabbitMQClient();
 		_messageProducer = new MessageProducer(_executor, _blockingQueue);
 		_messageConsumer = new MessageConsumer(_executor, _blockingQueue, this);
 	}
@@ -83,6 +84,7 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 
 	private void setupConnection(){
 		_rabbitMqConsumer.SetupConsumption(_messageProducer, config);
+		BrokerHelper.currentclient = _rabbitMqConsumer;
 		_messageProducer.Start();
 		_messageConsumer.Start();
 	}
@@ -91,6 +93,7 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 	public void stop()  {
 		try {
 			if (_rabbitMqConsumer != null) _rabbitMqConsumer.Stop();
+			BrokerHelper.currentclient = null;
 			if (_messageConsumer != null) _messageConsumer.Stop();
 			if (_messageProducer != null) _messageProducer.Stop();
 			_executor.shutdown();

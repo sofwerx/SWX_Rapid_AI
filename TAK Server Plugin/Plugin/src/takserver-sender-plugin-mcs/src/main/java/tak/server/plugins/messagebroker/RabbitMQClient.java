@@ -1,5 +1,6 @@
 package tak.server.plugins.messagebroker;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +16,7 @@ import tak.server.plugins.processing.*;
 import tak.server.plugins.PluginConfiguration;
 import tak.server.plugins.McsSenderPlugin;
 
-public class RabbitMQConsumer {
+public class RabbitMQClient {
     private MessageProducer _producer;
     private String _exchangeName = "dragonfly";
     private String _entityRoutingKey = "dragonfly.demo_entities";
@@ -25,7 +26,7 @@ public class RabbitMQConsumer {
     private String _username = "some-username";
     private boolean _useRapidX = false;
     
-    private static final Logger logger = LoggerFactory.getLogger(RabbitMQConsumer.class);
+    private static final Logger logger = LoggerFactory.getLogger(RabbitMQClient.class);
     private Channel _channel;
     private String _consumerTag = "";
     
@@ -85,6 +86,20 @@ public class RabbitMQConsumer {
     public Boolean isEventKey(String key)
     {
         return key.equals(_eventRoutingKey);
+    }
+
+    public void publishEntityMessage(String message)
+    {
+        if (!_channel.isOpen()) return;
+
+        try {
+            byte[] entityBytes = message.getBytes(StandardCharsets.UTF_8);
+            _channel.basicPublish(_exchangeName, _entityRoutingKey, null, entityBytes);
+        }
+        catch (Exception e) 
+		{
+			logger.error("error publishing to rabbitMQ", e);
+		}
     }
 
     private void SetupConfiguration(PluginConfiguration configuration) {
