@@ -17,6 +17,7 @@ import tak.server.plugins.dto.EntityDto;
 import atakmap.commoncommo.protobuf.v1.Cotevent.CotEvent;
 import atakmap.commoncommo.protobuf.v1.DetailOuterClass;
 
+import org.json.JSONML;
 import org.json.JSONObject;
 import org.json.XML;
 import org.slf4j.Logger;
@@ -94,9 +95,8 @@ public class McsCoTConverter {
 		cotEventBuilder.setHae(entity.getPoint().getHae());
 		cotEventBuilder.setCe(entity.getPoint().getCe());
 		cotEventBuilder.setLe(entity.getPoint().getLe());
-
-	    detailBuilder.setXmlDetail(entity.getDetail());
-
+        detailBuilder.setXmlDetail(entity.getDetail());
+        
         if (callsigns != null && !callsigns.isEmpty()) {
 
             messageBuilder.addAllDestCallsigns(callsigns);
@@ -108,6 +108,33 @@ public class McsCoTConverter {
         }
 
         return messageBuilder.build();
+    }
+
+    private static String getFormattedEntityDetail(String entityDetail) {
+        String modifiedXml = entityDetail;
+		
+		try {
+            String tagName = "tagName";
+			//String childNodes = "childNodes";
+			
+			JSONObject detailJsonObject = new JSONObject(entityDetail);
+			String videoValue = detailJsonObject.optString("video");
+			String videoXml = "";
+			if (videoValue != "") {
+				JSONObject videoJsonObject = new JSONObject();
+				videoJsonObject.put(tagName, "__video");
+				videoJsonObject.put("url", videoValue);
+				detailJsonObject.remove("video");
+				videoXml = JSONML.toString(videoJsonObject);
+			}
+			
+			modifiedXml = XML.toString(detailJsonObject) + videoXml;
+        }
+        catch (Exception e) {
+        	//DO Nothing
+        }
+
+        return modifiedXml;
     }
 
     public static EventDto convertToEvent(String json, PluginConfiguration configuration) {
@@ -130,34 +157,8 @@ public class McsCoTConverter {
         if (detailJObject != null) {
             detailJObject.addProperty(FROM_MCS, "true");
             String jsonDetailData = detailJObject.toString();
-            
-            //Using org.json here for convenient json->xml serialization
-            //TODO - we need to take the JSON Detail data and instead of using json value = to xml value
-            //json value = xml attribute
-            /*
-                <detail>
-                    <uid Droid="TOPGUN"/>
-                </detail>
-                
-                is equivalent to 
-                
-                "detail": {
-		            "uid": {
-			            "Droid": "TOPGUN"
-		            }
-	            }
-
-                but right now generates
-                
-                <uid>
-                    <Droid>
-                        TOPGUN
-                    </Droid>
-                </uid>
-            */
-            JSONObject detailJsonObject = new JSONObject(jsonDetailData);
-	    	String xmlDetailData = XML.toString(detailJsonObject);
-            event.setDetail(xmlDetailData);
+            String xmlDetailData = getFormattedEntityDetail(jsonDetailData);
+	    	event.setDetail(xmlDetailData);
         }
         
         return event;
