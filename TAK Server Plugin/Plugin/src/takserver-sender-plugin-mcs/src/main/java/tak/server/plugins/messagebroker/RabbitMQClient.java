@@ -20,6 +20,8 @@ import tak.server.plugins.McsSenderPlugin;
 public class RabbitMQClient {
     private MessageProducer _producer;
     private String _exchangeName = "dragonfly";
+    private Boolean _enableEntityRouting = true;
+    private Boolean _enableEventRouting = true;
     private String _entityRoutingKey = "dragonfly.demo_entities";
     private String _eventRoutingKey = "dragonfly.events";
     private String _rabbitHost = "some-rabbit";
@@ -55,8 +57,15 @@ public class RabbitMQClient {
             _channel.exchangeDeclare(_exchangeName, "topic", true);
             String queueName = _channel.queueDeclare().getQueue();
 
-            _channel.queueBind(queueName, _exchangeName, _eventRoutingKey);
-            _channel.queueBind(queueName, _exchangeName, _entityRoutingKey);
+            if (_enableEventRouting == true)
+                _channel.queueBind(queueName, _exchangeName, _eventRoutingKey);
+            else
+                logger.info("Event Routing disabled");
+           
+            if (_enableEntityRouting == true)
+                _channel.queueBind(queueName, _exchangeName, _entityRoutingKey);
+            else
+                logger.info("Entity Routing disabled");
 
             DeliverCallback deliverCallback = (consumerTag, delivery) -> {
                 String message = new String(delivery.getBody(), "UTF-8");
@@ -139,6 +148,14 @@ public class RabbitMQClient {
 
         if (configuration.containsProperty("useRapidX")) {
             _useRapidX = (boolean)configuration.getProperty("useRapidX");
+        }
+
+        if (configuration.containsProperty("rabbitmq.enableEntityRouting")) {
+            _enableEntityRouting = (boolean)configuration.getProperty("rabbitmq.enableEntityRouting");
+        }
+
+        if (configuration.containsProperty("rabbitmq.enableEventRouting")) {
+            _enableEventRouting = (boolean)configuration.getProperty("rabbitmq.enableEventRouting");
         }
     }
 }

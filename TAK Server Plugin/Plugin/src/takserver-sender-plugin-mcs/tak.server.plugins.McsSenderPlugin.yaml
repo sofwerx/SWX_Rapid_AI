@@ -7,5 +7,7 @@ rabbitmq:
   username: "rapidx"
   password: "dragonfly"
   entityKey: "dragonfly.demo_entities"
+  enableEntityRouting: true
   eventKey: "dragonfly.events"
+  enableEventRouting: true
   
