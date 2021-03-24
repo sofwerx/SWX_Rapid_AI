@@ -24,6 +24,7 @@ public class RabbitMQClient {
     private Boolean _enableEventRouting = true;
     private String _entityRoutingKey = "dragonfly.demo_entities";
     private String _eventRoutingKey = "dragonfly.events";
+    private String _publishEntityRoutingKey = "dragonfly.demo_entities";
     private String _rabbitHost = "some-rabbit";
     private String _password = "some-password";
     private String _username = "some-username";
@@ -108,10 +109,10 @@ public class RabbitMQClient {
 
         try {
             if (McsSenderPlugin.VerboseLogging)
-            logger.info("Publishing to " + _entityRoutingKey + " message: " + message);
+                logger.info("Publishing to " + _publishEntityRoutingKey + " message: " + message);
 
             byte[] entityBytes = message.getBytes(StandardCharsets.UTF_8);
-            _channel.basicPublish(_exchangeName, _entityRoutingKey, null, entityBytes);
+            _channel.basicPublish(_exchangeName, _publishEntityRoutingKey, null, entityBytes);
         }
         catch (Exception e) 
 		{
@@ -128,6 +129,10 @@ public class RabbitMQClient {
 
         if (configuration.containsProperty("rabbitmq.entityKey")) {
             _entityRoutingKey = (String)configuration.getProperty("rabbitmq.entityKey");
+        }
+
+        if (configuration.containsProperty("rabbitmq.publishEntityKey")) {
+            _publishEntityRoutingKey = (String)configuration.getProperty("rabbitmq.publishEntityKey");
         }
 
         if (configuration.containsProperty("rabbitmq.eventKey")) {

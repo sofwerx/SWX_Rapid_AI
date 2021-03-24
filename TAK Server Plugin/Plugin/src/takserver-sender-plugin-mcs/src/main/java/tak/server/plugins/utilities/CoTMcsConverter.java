@@ -51,6 +51,39 @@ public class CoTMcsConverter {
         //Detail
         EntityDto.setDetail(cotEvent.getDetail().getXmlDetail());
         
+        //TODO - We're missing the CoT Details stuff not in XML
+        /*
+            detail {
+                xmlDetail: "<uid Droid=\"NORWEGIAN\" nett=\"XX\"/>"
+                contact {
+                    endpoint: "*:-1:stcp"
+                    callsign: "NORWEGIAN"
+                }
+                group {
+                    name: "Cyan"
+                    role: "Team Member"
+                }
+                precisionLocation {
+                    geopointsrc: "GPS"
+                    altsrc: "GPS"
+                }
+                status {
+                    battery: 70
+                }
+                takv {
+                    device: "SAMSUNG SM-T710"
+                    platform: "ATAK"
+                    os: "24"
+                    version: "4.2.0.1 (38c62f04).1606262829-MIL"
+                }
+                track {
+                    course: 133.30836569850413
+                }
+            }
+
+        */
+
+
         return EntityDto;
     }
 
