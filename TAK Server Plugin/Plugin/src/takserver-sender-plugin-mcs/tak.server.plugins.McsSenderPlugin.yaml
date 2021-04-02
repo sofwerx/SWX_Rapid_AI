@@ -3,7 +3,7 @@ useRapidX : true
 verboseLogging : false
 rabbitmq:
   exchange_name: "dragonfly"
-  hostname: "gsa.cognitics.net"
+  hostname: "dragonfly.caeusa.com"
   username: "rapidx"
   password: "dragonfly"
   entityKey: "dragonfly.demo_entities"

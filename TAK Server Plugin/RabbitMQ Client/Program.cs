@@ -4,6 +4,7 @@ using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace RabbitMQClient
 {
@@ -12,12 +13,12 @@ namespace RabbitMQClient
         private static string EXCHANGE = "dragonfly";
         private static string ROUTING_KEY = "dragonfly.demo_entities";
         private static string EVENT_ROUTING_KEY = "dragonfly.events";
-        private static string RABBITMQ_HOSTNAME = "gsa.cognitics.net";
+        private static string RABBITMQ_HOSTNAME = "dragonfly.caeusa.com";
         private static string PASSWORD = "dragonfly";
         private static string USERNAME = "rapidx";
         private static bool USE_RAPIDX = true;
 
-        private static string MESSAGE = "{\"uid\":\"ExampleCompany.12345-abcde-6789-fghij\",\"type\":\"a-f-G-U-C\",\"time\":\"1614187736429\",\"start\":\"1614187736429\",\"stale\":\"1614191352000\",\"how\":\"m-g\",\"point\":{\"lat\":\"39.0495\",\"lon\":\"-85.7445\",\"hae\":\"9999999\",\"ce\":\"9999999\",\"le\":\"9999999\"},\"detail\":{\"milsym2525C\":\"SFGPUCI*****\", \"video\":\"https://cdn.bitdegree.org/learn/Pexels%20Videos%203373.mp4?raw=true\", \"feedType\":\"OSH_SENSOR\",\"serviceDetails\":{\"serviceUrl\":\"THE SERVICE URL\",\"provider\":{\"providerName\":\"SOME NAME\",\"providerData\":\"SOME DATA\"},\"offeringID\":\"THE OFFERING ID\",\"temporalData\":\"THE TEMPORAL DATA\"}}}";
+        private static string MESSAGE = "{\"uid\":\"ExampleCompany.12345-abcde-6789-fghij\",\"type\":\"a-f-G-U-C\",\"time\":\"1614187736429\",\"start\":\"1614187736429\",\"stale\":\"1614191352000\",\"how\":\"m-g\",\"point\":{\"lat\":\"39.0495\",\"lon\":\"-85.7445\",\"hae\":\"9999999\",\"ce\":\"9999999\",\"le\":\"9999999\"},\"detail\":{\"milsym2525C\":\"SFGPUCI*****\", \"video\":\"https://cdn.bitdegree.org/learn/Pexels%20Videos%203373.mp4?raw=true\", \"image\": \"data:image/png;base64,IMAGEPLACEHOLDER\", \"feedType\":\"OSH_SENSOR\",\"serviceDetails\":{\"serviceUrl\":\"THE SERVICE URL\",\"provider\":{\"providerName\":\"SOME NAME\",\"providerData\":\"SOME DATA\"},\"offeringID\":\"THE OFFERING ID\",\"temporalData\":\"THE TEMPORAL DATA\"}}}";
 
         private static string EVENT_MESSAGE = "{\"cot_uid\":\"b5034f03-b209-47a8-aa39-31d32e8ee337\",\"message\":\"This is a demo alert\",\"type\":\"warning\"}";
 
@@ -101,6 +102,12 @@ namespace RabbitMQClient
         {
             try
             {
+                var imageBase64 = string.Empty;
+                using (var sr = new StreamReader("Base64Image.txt"))
+                    imageBase64 = sr.ReadToEnd();
+
+                message = message.Replace("IMAGEPLACEHOLDER", imageBase64);
+
                 var jObject = JObject.Parse(message);
 
                 var newLat = GetRandomNumber(MIN_LAT, MAX_LAT);
