@@ -105,6 +105,11 @@ public class RabbitMQClient {
 
     public void publishEntityMessage(String message)
     {
+        if (_channel == null){
+            logger.error("error publishing to rabbitMQ, channel is not correctly initialized");
+            return;
+        }
+        
         if (!_channel.isOpen()) return;
 
         try {
