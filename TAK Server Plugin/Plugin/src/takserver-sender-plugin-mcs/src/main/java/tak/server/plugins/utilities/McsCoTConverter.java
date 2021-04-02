@@ -17,6 +17,7 @@ import tak.server.plugins.dto.EntityDto;
 import atakmap.commoncommo.protobuf.v1.Cotevent.CotEvent;
 import atakmap.commoncommo.protobuf.v1.DetailOuterClass;
 
+import org.json.JSONArray;
 import org.json.JSONML;
 import org.json.JSONObject;
 import org.json.XML;
@@ -115,7 +116,7 @@ public class McsCoTConverter {
 		
 		try {
             String tagName = "tagName";
-			//String childNodes = "childNodes";
+			String childNodes = "childNodes";
 			
 			JSONObject detailJsonObject = new JSONObject(entityDetail);
 			String videoValue = detailJsonObject.optString("video");
@@ -127,8 +128,20 @@ public class McsCoTConverter {
 				detailJsonObject.remove("video");
 				videoXml = JSONML.toString(videoJsonObject);
 			}
+
+            //TODO - NEED TO HANDLE THE URL BASED IMAGES
+            String imageValue = detailJsonObject.optString("image");
+            String imageXml = "";
+            if (imageValue != "") {
+                JSONObject imageJsonObject = new JSONObject();
+                imageJsonObject.put(tagName, "image");
+                imageJsonObject.put("mime", imageValue.substring(imageValue.indexOf(':') + 1, imageValue.indexOf(';')));
+                imageJsonObject.put(childNodes, new JSONArray().put(imageValue.substring(imageValue.indexOf(',') + 1)));
+                detailJsonObject.remove("image");
+                imageXml = JSONML.toString(imageJsonObject);
+            }
 			
-			modifiedXml = XML.toString(detailJsonObject) + videoXml;
+			modifiedXml = XML.toString(detailJsonObject) + videoXml + imageXml;
         }
         catch (Exception e) {
         	//DO Nothing
