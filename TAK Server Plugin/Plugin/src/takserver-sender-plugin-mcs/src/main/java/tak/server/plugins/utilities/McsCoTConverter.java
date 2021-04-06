@@ -49,12 +49,13 @@ public class McsCoTConverter {
         Long timeMs = instant.toEpochMilli() ;
         Long staleMs = timeMs + (5 * 60 * 1000); //Five minutes
         
-        cotEventBuilder.setType("b-i-d-m");
+        cotEventBuilder.setType("a-u");
 		cotEventBuilder.setHow("m-r");
 
 		cotEventBuilder.setSendTime(timeMs);
 		cotEventBuilder.setStartTime(timeMs);
 		cotEventBuilder.setStaleTime(staleMs);
+        
         //27.6615493 -81.2769707 - Generally around Avon Park
         Random r = new Random(); 
         double tempLat = 27.6615493 + r.nextDouble() * .08;

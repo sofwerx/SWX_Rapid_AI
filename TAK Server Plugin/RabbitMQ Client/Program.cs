@@ -12,7 +12,7 @@ namespace RabbitMQClient
     {
         private static string EXCHANGE = "dragonfly";
         private static string ROUTING_KEY = "dragonfly.demo_entities";
-        private static string EVENT_ROUTING_KEY = "dragonfly.demo_entities";
+        private static string EVENT_ROUTING_KEY = "dragonfly.demo_events";
         private static string RABBITMQ_HOSTNAME = "dragonfly.caeusa.com";
         private static string PASSWORD = "dragonfly";
         private static string USERNAME = "rapidx";
