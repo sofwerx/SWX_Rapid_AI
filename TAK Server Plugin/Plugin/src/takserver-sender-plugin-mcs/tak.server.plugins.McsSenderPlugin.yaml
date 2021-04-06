@@ -9,6 +9,6 @@ rabbitmq:
   entityKey: "dragonfly.demo_entities"
   publishEntityKey: "dragonfly.demo_entities"
   enableEntityRouting: true
-  eventKey: "dragonfly.events"
+  eventKey: "dragonfly.demo_entities"
   enableEventRouting: true
   

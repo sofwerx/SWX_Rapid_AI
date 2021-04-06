@@ -107,19 +107,9 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 	public void messageReceived(String topic, String message){
 		try {
 			Message takMessage = null;
-			if(_rabbitMqConsumer.isEntityKey(topic)) { 
-
-				EntityDto entity = McsCoTConverter.convertToEntity(message, config);
-				if (entity == null){
-					_logger.error("error converting message to event");
-					return;
-				}
-
-				takMessage = McsCoTConverter.convertToMessage(entity, config);
-			}
-
-			if(_rabbitMqConsumer.isEventKey(topic)) { 
-
+			//Eventually the topic will be specific towards a message type (entity vs alert)
+			//For now we will look for 'cot_uid' which is a key in an alert message
+			if(message.contains("cot_uid")) { 
 				EventDto event = McsCoTConverter.convertToEvent(message, config);
 				if (event == null){
 					_logger.error("error converting message to event");
@@ -127,6 +117,15 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 				}
 
 				takMessage = McsCoTConverter.convertToMessage(event, config);
+			}
+			else {
+				EntityDto entity = McsCoTConverter.convertToEntity(message, config);
+				if (entity == null){
+					_logger.error("error converting message to event");
+					return;
+				}
+
+				takMessage = McsCoTConverter.convertToMessage(entity, config);
 			}
 
 			if (takMessage == null){

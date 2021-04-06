@@ -25,7 +25,7 @@ public class EntityDto {
 	@SerializedName("point")
 	private PointDto _point = null;
 
-    private transient String _detail = null;
+    private transient String _detail = "";
 	
 	public String getUid() {
         return _uid;

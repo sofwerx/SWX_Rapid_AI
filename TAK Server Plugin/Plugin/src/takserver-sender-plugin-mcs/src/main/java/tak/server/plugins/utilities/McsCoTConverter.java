@@ -1,6 +1,7 @@
 package tak.server.plugins.utilities;
 
 import java.util.List;
+import java.util.Random;
 import java.time.Instant;
 
 import com.google.gson.Gson;
@@ -54,8 +55,14 @@ public class McsCoTConverter {
 		cotEventBuilder.setSendTime(timeMs);
 		cotEventBuilder.setStartTime(timeMs);
 		cotEventBuilder.setStaleTime(staleMs);
-		cotEventBuilder.setLat(0.0);
-		cotEventBuilder.setLon(0.0);
+        //27.6615493 -81.2769707 - Generally around Avon Park
+        Random r = new Random(); 
+        double tempLat = 27.6615493 + r.nextDouble() * .08;
+        double tempLon = -81.2769707 + r.nextDouble() * .08;
+
+		cotEventBuilder.setLat(tempLat);
+		cotEventBuilder.setLon(tempLon);
+        
 		cotEventBuilder.setHae(9999999);
 		cotEventBuilder.setCe(9999999);
 		cotEventBuilder.setLe(9999999);
@@ -129,14 +136,18 @@ public class McsCoTConverter {
 				videoXml = JSONML.toString(videoJsonObject);
 			}
 
-            //TODO - NEED TO HANDLE THE URL BASED IMAGES
             String imageValue = detailJsonObject.optString("image");
             String imageXml = "";
             if (imageValue != "") {
                 JSONObject imageJsonObject = new JSONObject();
                 imageJsonObject.put(tagName, "image");
-                imageJsonObject.put("mime", imageValue.substring(imageValue.indexOf(':') + 1, imageValue.indexOf(';')));
-                imageJsonObject.put(childNodes, new JSONArray().put(imageValue.substring(imageValue.indexOf(',') + 1)));
+                if (imageValue.contains("data:image")){
+                    imageJsonObject.put("mime", imageValue.substring(imageValue.indexOf(':') + 1, imageValue.indexOf(';')));
+                    imageJsonObject.put(childNodes, new JSONArray().put(imageValue.substring(imageValue.indexOf(',') + 1)));
+                }
+                else {
+                    imageJsonObject.put("url", imageValue);
+                }
                 detailJsonObject.remove("image");
                 imageXml = JSONML.toString(imageJsonObject);
             }

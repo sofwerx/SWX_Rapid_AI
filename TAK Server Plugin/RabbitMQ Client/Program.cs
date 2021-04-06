@@ -12,15 +12,17 @@ namespace RabbitMQClient
     {
         private static string EXCHANGE = "dragonfly";
         private static string ROUTING_KEY = "dragonfly.demo_entities";
-        private static string EVENT_ROUTING_KEY = "dragonfly.events";
+        private static string EVENT_ROUTING_KEY = "dragonfly.demo_entities";
         private static string RABBITMQ_HOSTNAME = "dragonfly.caeusa.com";
         private static string PASSWORD = "dragonfly";
         private static string USERNAME = "rapidx";
         private static bool USE_RAPIDX = true;
 
-        private static string MESSAGE = "{\"uid\":\"ExampleCompany.12345-abcde-6789-fghij\",\"type\":\"a-f-G-U-C\",\"time\":\"1614187736429\",\"start\":\"1614187736429\",\"stale\":\"1614191352000\",\"how\":\"m-g\",\"point\":{\"lat\":\"39.0495\",\"lon\":\"-85.7445\",\"hae\":\"9999999\",\"ce\":\"9999999\",\"le\":\"9999999\"},\"detail\":{\"milsym2525C\":\"SFGPUCI*****\", \"video\":\"https://cdn.bitdegree.org/learn/Pexels%20Videos%203373.mp4?raw=true\", \"image\": \"data:image/png;base64,IMAGEPLACEHOLDER\", \"feedType\":\"OSH_SENSOR\",\"serviceDetails\":{\"serviceUrl\":\"THE SERVICE URL\",\"provider\":{\"providerName\":\"SOME NAME\",\"providerData\":\"SOME DATA\"},\"offeringID\":\"THE OFFERING ID\",\"temporalData\":\"THE TEMPORAL DATA\"}}}";
+        private static string MESSAGE = "{\"uid\":\"CustomIDForTAKServerTest.12345\",\"type\":\"a-f-G-U-C\",\"time\":\"1614187736429\",\"start\":\"1614187736429\",\"stale\":\"1614191352000\",\"how\":\"m-g\",\"point\":{\"lat\":\"39.0495\",\"lon\":\"-85.7445\",\"hae\":\"9999999\",\"ce\":\"9999999\",\"le\":\"9999999\"},\"detail\":{\"milsym2525C\":\"SFGPUCI*****\", \"video\":\"https://cdn.bitdegree.org/learn/Pexels%20Videos%203373.mp4?raw=true\", \"image\": \"IMAGEPLACEHOLDER\", \"feedType\":\"OSH_SENSOR\",\"serviceDetails\":{\"serviceUrl\":\"THE SERVICE URL\",\"provider\":{\"providerName\":\"SOME NAME\",\"providerData\":\"SOME DATA\"},\"offeringID\":\"THE OFFERING ID\",\"temporalData\":\"THE TEMPORAL DATA\"}}}";
 
         private static string EVENT_MESSAGE = "{\"cot_uid\":\"b5034f03-b209-47a8-aa39-31d32e8ee337\",\"message\":\"This is a demo alert\",\"type\":\"warning\"}";
+
+        private static string IMAGE_URL = @"https://i.picsum.photos/id/1025/4951/3301.jpg?hmac=_aGh5AtoOChip_iaMo8ZvvytfEojcgqbCH7dzaz-H8Y";
 
         private static Random _random = new Random();
         private static double MIN_LAT = 39.04;
@@ -106,7 +108,11 @@ namespace RabbitMQClient
                 using (var sr = new StreamReader("Base64Image.txt"))
                     imageBase64 = sr.ReadToEnd();
 
-                message = message.Replace("IMAGEPLACEHOLDER", imageBase64);
+                var randomNumber = GetRandomNumber(0, 10);
+                if(IsOdd(randomNumber))
+                    message = message.Replace("IMAGEPLACEHOLDER", @"data:image/png;base64," + imageBase64);
+                else
+                    message = message.Replace("IMAGEPLACEHOLDER", IMAGE_URL);
 
                 var jObject = JObject.Parse(message);
 
@@ -137,6 +143,9 @@ namespace RabbitMQClient
         {
             return _random.NextDouble() * (maximum - minimum) + minimum;
         }
+
+        private static bool IsOdd(double number) => Math.Round(number, 0) % 2 == 0;
+        
 
         /*
             ConnectionFactory factory = new ConnectionFactory();
