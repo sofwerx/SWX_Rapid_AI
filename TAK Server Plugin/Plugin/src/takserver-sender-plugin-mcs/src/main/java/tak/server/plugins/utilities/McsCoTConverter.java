@@ -56,13 +56,27 @@ public class McsCoTConverter {
 		cotEventBuilder.setStartTime(timeMs);
 		cotEventBuilder.setStaleTime(staleMs);
         
-        //27.6615493 -81.2769707 - Generally around Avon Park
-        Random r = new Random(); 
-        double tempLat = 27.6615493 + r.nextDouble() * .08;
-        double tempLon = -81.2769707 + r.nextDouble() * .08;
+        if(configuration.containsProperty("simulateAlertLocation") 
+            && (boolean)configuration.getProperty("simulateAlertLocation") == true) {
+            if (event.getPoint().getLat() == 0.0 || event.getPoint().getLon() == 0.0) {
+                //27.6615493 -81.2769707 - Generally around Avon Park
+                Random r = new Random(); 
+                double tempLat = 27.6615493 + r.nextDouble() * .08;
+                double tempLon = -81.2769707 + r.nextDouble() * .08;
 
-		cotEventBuilder.setLat(tempLat);
-		cotEventBuilder.setLon(tempLon);
+                cotEventBuilder.setLat(tempLat);
+                cotEventBuilder.setLon(tempLon);
+            }
+            else {
+                cotEventBuilder.setLat(event.getPoint().getLat());
+		        cotEventBuilder.setLon(event.getPoint().getLon());
+            }
+        }
+        else {
+            cotEventBuilder.setLat(event.getPoint().getLat());
+		    cotEventBuilder.setLon(event.getPoint().getLon());
+        }
+        
         
 		cotEventBuilder.setHae(9999999);
 		cotEventBuilder.setCe(9999999);

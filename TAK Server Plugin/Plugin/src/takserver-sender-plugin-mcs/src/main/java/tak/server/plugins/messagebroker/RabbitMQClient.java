@@ -23,7 +23,7 @@ public class RabbitMQClient {
     private Boolean _enableEntityRouting = true;
     private Boolean _enableEventRouting = true;
     private String _entityRoutingKey = "dragonfly.demo_entities";
-    private String _eventRoutingKey = "dragonfly.events";
+    private String _eventRoutingKey = "dragonfly.demo_alerts";
     private String _publishEntityRoutingKey = "dragonfly.demo_entities";
     private String _rabbitHost = "some-rabbit";
     private String _password = "some-password";

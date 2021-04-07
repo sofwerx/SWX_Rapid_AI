@@ -12,6 +12,9 @@ public class EventDto {
     @SerializedName("type")
     private String _type = "";
 
+    @SerializedName("point")
+	private PointDto _point = new PointDto();
+
     public String getUid() {
         return _uid;
     }
@@ -35,4 +38,12 @@ public class EventDto {
     public void setType(String type) {
         _type = type;
     } 
+
+    public PointDto getPoint() {
+        return _point;
+    }
+
+    public void setPoint(PointDto point) {
+       _point = point;
+    }
 }

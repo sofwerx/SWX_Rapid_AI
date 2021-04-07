@@ -1,6 +1,7 @@
 processing_queue_size: 10
 useRapidX : true
 verboseLogging : false
+simulateAlertLocation : true
 rabbitmq:
   exchange_name: "dragonfly"
   hostname: "dragonfly.caeusa.com"
