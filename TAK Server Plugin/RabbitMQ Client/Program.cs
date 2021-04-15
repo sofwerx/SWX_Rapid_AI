@@ -20,9 +20,13 @@ namespace RabbitMQClient
 
         private static string MESSAGE = "{\"uid\":\"CustomIDForTAKServerTest.Entity\",\"type\":\"a-f-G-U-C\",\"time\":\"1614187736429\",\"start\":\"1614187736429\",\"stale\":\"1614191352000\",\"how\":\"m-g\",\"point\":{\"lat\":\"39.0495\",\"lon\":\"-85.7445\",\"hae\":\"9999999\",\"ce\":\"9999999\",\"le\":\"9999999\"},\"detail\":{\"milsym2525C\":\"SFGPUCI*****\", \"video\":\"https://cdn.bitdegree.org/learn/Pexels%20Videos%203373.mp4?raw=true\", \"image\": \"IMAGEPLACEHOLDER\", \"feedType\":\"OSH_SENSOR\",\"serviceDetails\":{\"serviceUrl\":\"THE SERVICE URL\",\"provider\":{\"providerName\":\"SOME NAME\",\"providerData\":\"SOME DATA\"},\"offeringID\":\"THE OFFERING ID\",\"temporalData\":\"THE TEMPORAL DATA\"}}}";
 
-        private static string EVENT_MESSAGE = "{\"cot_uid\":\"CustomIDForTAKServerTest.Alert\",\"message\":\"This is a demo alert from a test client (no location)\",\"type\":\"info\"}";
+        //private static string EVENT_MESSAGE = "{\"cot_uid\":\"CustomIDForTAKServerTest.Alert\",\"message\":\"This is a demo alert from a test client (no location)\",\"type\":\"info\"}";
+                
+        private static string EVENT_MESSAGE = "{\"cot_uid\":\"CustomIDForTAKServerTest.Entity\",\"message\":\"This is a demo alert from a test client at TIME\",\"type\":\"info\"}";
+        //ANDROID-1e159fc8250eb070
+        //private static string EVENT_MESSAGE = "{\"cot_uid\":\"ANDROID-1e159fc8250eb070\",\"message\":\"This is a demo alert from a test client (no location)\",\"type\":\"info\"}";
 
-        private static string EVENT_MESSAGE_WITH_LOCATION = "{\"cot_uid\":\"CustomIDForTAKServerTest.Alert\",\"message\":\"This is a demo alert from a test client\",\"type\":\"info\",\"point\":{\"lat\":\"30.4299511\",\"lon\":\"-86.6061093\",\"hae\":\"9999999\",\"ce\":\"9999999\",\"le\":\"9999999\"}}";
+        private static string EVENT_MESSAGE_WITH_LOCATION = "{\"cot_uid\":\"CustomIDForTAKServerTest.Entity\",\"message\":\"This is a demo alert from a test client\",\"type\":\"info\",\"point\":{\"lat\":\"30.4299511\",\"lon\":\"-86.6061093\",\"hae\":\"9999999\",\"ce\":\"9999999\",\"le\":\"9999999\"}}";
 
         private static string IMAGE_URL = @"https://i.picsum.photos/id/1025/4951/3301.jpg?hmac=_aGh5AtoOChip_iaMo8ZvvytfEojcgqbCH7dzaz-H8Y";
 
@@ -66,7 +70,7 @@ namespace RabbitMQClient
                                         body: body);
 
                         Console.WriteLine(" [x] Sent {0}", message);
-                        await Task.Delay(10000);
+                        await Task.Delay(5000);
                     }
                 }
                 catch (Exception ex)
@@ -82,15 +86,16 @@ namespace RabbitMQClient
                 {
                     while (true)
                     {
-                        var body = Encoding.UTF8.GetBytes(EVENT_MESSAGE);
+                        var message = EVENT_MESSAGE.Replace("TIME", DateTime.UtcNow.ToString("HH:mm:ss"));
+                        var body = Encoding.UTF8.GetBytes(message);
 
                         channel.BasicPublish(exchange: EXCHANGE,
                                         routingKey: EVENT_ROUTING_KEY,
                                         basicProperties: null,
                                         body: body);
 
-                        Console.WriteLine(" [x] Sent {0}", EVENT_MESSAGE);
-                        await Task.Delay(5000);
+                        Console.WriteLine(" [x] Sent {0}", message);
+                        await Task.Delay(20000);
                     }
                 }
                 catch (Exception ex)

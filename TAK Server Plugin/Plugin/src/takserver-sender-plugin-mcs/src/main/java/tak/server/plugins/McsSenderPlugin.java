@@ -27,6 +27,8 @@ import tak.server.plugins.dto.EventDto;
 import tak.server.plugins.dto.EntityDto;
 import tak.server.plugins.interfaces.MessageCallback;
 import tak.server.plugins.messagebroker.RabbitMQClient;
+import tak.server.plugins.missionapi.TakServerCoTApi;
+import tak.server.plugins.missionapi.TakServerCoTCallback;
 import tak.server.plugins.processing.MessageConsumer;
 import tak.server.plugins.processing.MessageProducer;
 import tak.server.plugins.processing.ProcessingMessage;
@@ -48,7 +50,7 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 	private MessageConsumer _messageConsumer;
 	private BlockingQueue<ProcessingMessage> _blockingQueue; 
     private ExecutorService _executor = Executors.newFixedThreadPool(2);
-
+	
 	public static Boolean VerboseLogging = false;
 	
 	@SuppressWarnings("unchecked")
@@ -116,7 +118,29 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 					return;
 				}
 
-				takMessage = McsCoTConverter.convertToMessage(event, config);
+				//TODO - park it in prefs
+				String targetAddress = "127.0.0.1";
+            	int targetPort = 8080;
+				TakServerCoTApi.queryForCotEvent(targetAddress, targetPort, event.getUid(), 
+					new TakServerCoTCallback(){
+						@Override
+						public void cotResult(Boolean success, String cot) {
+							try {
+								Message eventMessage = null;
+								if (success) {
+									final Message parentMessage = getConverter().cotStringToDataMessage(cot, null, Integer.toString(System.identityHashCode(this)));
+									eventMessage = McsCoTConverter.convertToLinkedMessage(event, parentMessage.getPayload().getCotEvent(), config);
+								}
+								else
+									eventMessage = McsCoTConverter.convertToMessage(event, config);
+	
+								send(eventMessage);
+							}
+							catch (Exception exception) {
+								_logger.error("error converting to linked message", exception);
+							}
+						}
+					});
 			}
 			else {
 				EntityDto entity = McsCoTConverter.convertToEntity(message, config);
@@ -126,6 +150,7 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 				}
 
 				takMessage = McsCoTConverter.convertToMessage(entity, config);
+				send(takMessage);
 			}
 
 			if (takMessage == null){
@@ -136,7 +161,6 @@ public class McsSenderPlugin extends MessageSenderBase implements MessageCallbac
 			if(VerboseLogging)
 				_logger.info("TAK message converted: " + takMessage);
 				
-			send(takMessage);
 		} catch (Exception exception) {
 			_logger.error("error converting message ", message, exception);
 		}

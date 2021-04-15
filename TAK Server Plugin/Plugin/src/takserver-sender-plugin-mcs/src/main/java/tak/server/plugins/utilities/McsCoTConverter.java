@@ -32,7 +32,39 @@ public class McsCoTConverter {
     
     public static Message convertToMessage(EventDto event, PluginConfiguration configuration) {
         Message.Builder messageBuilder = MessageOuterClass.Message.newBuilder();
-		TakMessage.Builder payloadBuilder = messageBuilder.getPayloadBuilder();
+		buildEventMessage(event, messageBuilder, configuration);
+        
+        return messageBuilder.build();
+    }
+
+    public static Message convertToLinkedMessage(EventDto event, CotEvent linkedCotEvent, PluginConfiguration configuration) {
+        Message.Builder messageBuilder = MessageOuterClass.Message.newBuilder();
+		buildEventMessage(event, messageBuilder, configuration);
+
+        TakMessage.Builder payloadBuilder = messageBuilder.getPayloadBuilder();
+		CotEvent.Builder cotEventBuilder = payloadBuilder.getCotEventBuilder();
+        DetailOuterClass.Detail.Builder detailBuilder = cotEventBuilder.getDetailBuilder();
+
+        Instant instant = Instant.now();
+        Long timeMs = instant.toEpochMilli() ;
+        cotEventBuilder.setUid(event.getUid() + "-alert-" + timeMs.toString());
+
+        cotEventBuilder.setLat(linkedCotEvent.getLat());
+		cotEventBuilder.setLon(linkedCotEvent.getLon());
+
+        String existingDetail = detailBuilder.getXmlDetail();
+        String linkDetail = "";
+        //Keep it simple for now
+        String linkXML = "<link relation=\"p-p\" type=\"PARENT_TYPE\" uid=\"PARENT_UUID\"/>"
+            .replace("PARENT_TYPE", linkedCotEvent.getType())
+            .replace("PARENT_UUID", linkedCotEvent.getUid());
+        detailBuilder.setXmlDetail(existingDetail + linkXML);
+       
+        return messageBuilder.build();
+    }
+
+    public static void buildEventMessage(EventDto event, Message.Builder messageBuilder, PluginConfiguration configuration) {
+        TakMessage.Builder payloadBuilder = messageBuilder.getPayloadBuilder();
 		CotEvent.Builder cotEventBuilder = payloadBuilder.getCotEventBuilder();
 		DetailOuterClass.Detail.Builder detailBuilder = cotEventBuilder.getDetailBuilder();
         		
@@ -49,34 +81,14 @@ public class McsCoTConverter {
         Long timeMs = instant.toEpochMilli() ;
         Long staleMs = timeMs + (5 * 60 * 1000); //Five minutes
         
-        cotEventBuilder.setType("a-u");
-		cotEventBuilder.setHow("m-r");
+        cotEventBuilder.setType("b-m-p-s-p-i");//Bits-mapping-designated point-sensor-point-interest
+		cotEventBuilder.setHow("m-r");//Machine-relayed
 
 		cotEventBuilder.setSendTime(timeMs);
 		cotEventBuilder.setStartTime(timeMs);
 		cotEventBuilder.setStaleTime(staleMs);
-        
-        if(configuration.containsProperty("simulateAlertLocation") 
-            && (boolean)configuration.getProperty("simulateAlertLocation") == true) {
-            if (event.getPoint().getLat() == 0.0 || event.getPoint().getLon() == 0.0) {
-                //27.6615493 -81.2769707 - Generally around Avon Park
-                Random r = new Random(); 
-                double tempLat = 27.6615493 + r.nextDouble() * .08;
-                double tempLon = -81.2769707 + r.nextDouble() * .08;
-
-                cotEventBuilder.setLat(tempLat);
-                cotEventBuilder.setLon(tempLon);
-            }
-            else {
-                cotEventBuilder.setLat(event.getPoint().getLat());
-		        cotEventBuilder.setLon(event.getPoint().getLon());
-            }
-        }
-        else {
-            cotEventBuilder.setLat(event.getPoint().getLat());
-		    cotEventBuilder.setLon(event.getPoint().getLon());
-        }
-        
+        cotEventBuilder.setLat(event.getPoint().getLat());
+		cotEventBuilder.setLon(event.getPoint().getLon());
         
 		cotEventBuilder.setHae(9999999);
 		cotEventBuilder.setCe(9999999);
@@ -90,8 +102,6 @@ public class McsCoTConverter {
         detailJsonObject.put(FROM_MCS, "true");
         String xmlDetailData = XML.toString(detailJsonObject);
         detailBuilder.setXmlDetail(xmlDetailData);
-
-        return messageBuilder.build();
     }
 
     public static Message convertToMessage(EntityDto entity, PluginConfiguration configuration) {
