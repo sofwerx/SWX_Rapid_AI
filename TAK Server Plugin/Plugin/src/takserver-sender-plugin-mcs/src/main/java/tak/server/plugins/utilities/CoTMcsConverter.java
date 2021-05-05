@@ -169,16 +169,17 @@ public class CoTMcsConverter {
         if (videoJsonObject != null) {
             String url = videoJsonObject.optString("url");
             JSONObject objectConnectionEntry = videoJsonObject.optJSONObject("ConnectionEntry");
-            if (url != null) {
+            
+            if (url != null && url != "") {
                 detailDataJsonObject.put("video", url);
             }
             else if (objectConnectionEntry != null) {
-                    String protocol = objectConnectionEntry.optString("protocol");
-                    String address = objectConnectionEntry.optString("address");
-                    int port = objectConnectionEntry.optInt("port");
-                    if (port == 0) port = 80;
-                    String path = objectConnectionEntry.optString("path");
-                    detailDataJsonObject.put("video", protocol + ":////" + address + ":" + port + path);  
+                String protocol = objectConnectionEntry.optString("protocol");
+                String address = objectConnectionEntry.optString("address");
+                int port = objectConnectionEntry.optInt("port");
+                if (port == 0) port = 80;
+                String path = objectConnectionEntry.optString("path");
+                detailDataJsonObject.put("video", protocol + "://" + address + ":" + port + path);  
             }
         }
         
