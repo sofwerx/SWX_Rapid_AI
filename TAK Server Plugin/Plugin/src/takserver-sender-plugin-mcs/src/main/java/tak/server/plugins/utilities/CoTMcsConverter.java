@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -17,9 +18,15 @@ import com.google.gson.JsonParser;
 
 import atakmap.commoncommo.protobuf.v1.Cotevent;
 import atakmap.commoncommo.protobuf.v1.Cotevent.CotEvent;
+import atakmap.commoncommo.protobuf.v1.ContactOuterClass.Contact;
+import atakmap.commoncommo.protobuf.v1.DetailOuterClass.Detail;
+import atakmap.commoncommo.protobuf.v1.GroupOuterClass.Group;
 import atakmap.commoncommo.protobuf.v1.MessageOuterClass.Message;
+import atakmap.commoncommo.protobuf.v1.Precisionlocation.PrecisionLocation;
+import atakmap.commoncommo.protobuf.v1.StatusOuterClass.Status;
 import atakmap.commoncommo.protobuf.v1.Takmessage.TakMessage;
-
+import atakmap.commoncommo.protobuf.v1.TakvOuterClass.Takv;
+import atakmap.commoncommo.protobuf.v1.TrackOuterClass.Track;
 import tak.server.plugins.dto.EntityDto;
 import tak.server.plugins.dto.PointDto;
 
@@ -30,15 +37,15 @@ public class CoTMcsConverter {
     public static EntityDto convertToEntityDto(Message message) {
         TakMessage takMessage = message.getPayload();
         CotEvent cotEvent = takMessage.getCotEvent();
-        EntityDto EntityDto = new EntityDto();
+        EntityDto entityDto = new EntityDto();
         
-        EntityDto.setUid(cotEvent.getUid());
-        EntityDto.setType(cotEvent.getType());
-        EntityDto.setHow(cotEvent.getHow());
-        EntityDto.setTime(convertTime(cotEvent.getSendTime()));
-        EntityDto.setStart(convertTime(cotEvent.getStartTime()));
-        EntityDto.setStale(convertTime(cotEvent.getStaleTime()));
-        EntityDto.setHow(cotEvent.getHow());
+        entityDto.setUid(cotEvent.getUid());
+        entityDto.setType(cotEvent.getType());
+        entityDto.setHow(cotEvent.getHow());
+        entityDto.setTime(convertTime(cotEvent.getSendTime()));
+        entityDto.setStart(convertTime(cotEvent.getStartTime()));
+        entityDto.setStale(convertTime(cotEvent.getStaleTime()));
+        entityDto.setHow(cotEvent.getHow());
 
         PointDto pointDto = new PointDto();
         pointDto.setLat(cotEvent.getLat());
@@ -46,10 +53,72 @@ public class CoTMcsConverter {
         pointDto.setCe(cotEvent.getCe());
         pointDto.setHae(cotEvent.getHae());
         pointDto.setLe(cotEvent.getLe());
-        EntityDto.setPoint(pointDto);
+        entityDto.setPoint(pointDto);
 
+        _logger.info("setting details");
         //Detail
-        EntityDto.setDetail(cotEvent.getDetail().getXmlDetail());
+        Detail cotDetail = cotEvent.getDetail();
+        String xmlDetail = cotDetail.getXmlDetail();
+        JSONObject strongTypedDetailJsonObject = new JSONObject(); 
+        
+        //Contact
+        Contact contact = cotDetail.getContact();
+        if (contact != null) {
+            JSONObject contactJsonObject = new JSONObject();
+            contactJsonObject.put("endpoint", Optional.ofNullable(contact.getEndpoint()).orElse(""));
+            contactJsonObject.put("callsign", Optional.ofNullable(contact.getCallsign()).orElse(""));
+            strongTypedDetailJsonObject.put("contact", contactJsonObject);
+        }
+
+        //Group
+        Group group = cotDetail.getGroup();
+        if(group != null) {
+            JSONObject groupJsonObject = new JSONObject();
+            groupJsonObject.put("name", Optional.ofNullable(group.getName()).orElse(""));
+            groupJsonObject.put("role", Optional.ofNullable(group.getRole()).orElse(""));
+            strongTypedDetailJsonObject.put("group", groupJsonObject);
+        }
+
+        //PrecisionLocation
+        PrecisionLocation precisionLocation = cotDetail.getPrecisionLocation();
+        if(precisionLocation != null) {
+            JSONObject precisionLocationJsonObject = new JSONObject();
+            precisionLocationJsonObject.put("geopointsrc", Optional.ofNullable(precisionLocation.getGeopointsrc()).orElse(""));
+            precisionLocationJsonObject.put("altsrc", Optional.ofNullable(precisionLocation.getAltsrc()).orElse(""));
+            strongTypedDetailJsonObject.put("precisionLocation", precisionLocationJsonObject);
+        }
+
+        //Status
+        Status status = cotDetail.getStatus();
+        if(status != null) {
+            JSONObject statusJsonObject = new JSONObject();
+            statusJsonObject.put("battery", status.getBattery());
+            strongTypedDetailJsonObject.put("status", statusJsonObject);
+        }
+
+        //Takv
+        Takv takv = cotDetail.getTakv();
+        if (takv != null) {
+            JSONObject takvJsonObject = new JSONObject();
+            takvJsonObject.put("device", Optional.ofNullable(takv.getDevice()).orElse(""));
+            takvJsonObject.put("platform", Optional.ofNullable(takv.getPlatform()).orElse(""));
+            takvJsonObject.put("os", Optional.ofNullable(takv.getOs()).orElse(""));
+            takvJsonObject.put("version", Optional.ofNullable(takv.getVersion()).orElse(""));
+            strongTypedDetailJsonObject.put("takv", takvJsonObject);    
+        }
+
+        //Track
+        Track track = cotDetail.getTrack();
+        if (track != null) {
+            JSONObject trackJsonObject = new JSONObject();
+            trackJsonObject.put("speed", track.getSpeed());
+            trackJsonObject.put("battery", track.getCourse());
+            strongTypedDetailJsonObject.put("status", trackJsonObject);
+        }
+
+        String additionalXml = XML.toString(strongTypedDetailJsonObject);
+        
+        entityDto.setDetail(xmlDetail + additionalXml);
         
         //TODO - We're missing the CoT Details stuff not in XML
         /*
@@ -84,25 +153,42 @@ public class CoTMcsConverter {
         */
 
 
-        return EntityDto;
+        return entityDto;
     }
 
     public static String convertToJson(EntityDto EntityDto) {
         Gson gson = new Gson();
         JsonElement element = JsonParser.parseString(gson.toJson(EntityDto));
         
-        //Using org.json here for convenient xml-> serialization
+        //Manipulate Details Object
         JSONObject detailDataJsonObject = XML.toJSONObject(EntityDto.getDetail());
         detailDataJsonObject.put(FROM_TAK, "true");
+
+        //__video -> video
+        JSONObject videoJsonObject = detailDataJsonObject.optJSONObject("__video");
+        if (videoJsonObject != null) {
+            String url = videoJsonObject.optString("url");
+            JSONObject objectConnectionEntry = videoJsonObject.optJSONObject("ConnectionEntry");
+            if (url != null) {
+                detailDataJsonObject.put("video", url);
+            }
+            else if (objectConnectionEntry != null) {
+                    String protocol = objectConnectionEntry.optString("protocol");
+                    String address = objectConnectionEntry.optString("address");
+                    int port = objectConnectionEntry.optInt("port");
+                    if (port == 0) port = 80;
+                    String path = objectConnectionEntry.optString("path");
+                    detailDataJsonObject.put("video", protocol + ":////" + address + ":" + port + path);  
+            }
+        }
+        
         String detailJson = detailDataJsonObject.toString();
         
         //Back to gson
-        JsonElement detailJobject = JsonParser.parseString(detailJson);        
+        JsonElement detailElement = JsonParser.parseString(detailJson);        
         JsonObject jObject = element.getAsJsonObject();
-        jObject.add("detail", detailJobject);
-
-
-        
+        jObject.add("detail", detailElement);
+       
         return jObject.toString();
     }
 

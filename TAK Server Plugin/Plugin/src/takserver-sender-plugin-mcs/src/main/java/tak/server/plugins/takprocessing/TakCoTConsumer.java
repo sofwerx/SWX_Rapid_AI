@@ -45,7 +45,10 @@ public class TakCoTConsumer {
                         try {
                             //TODO - Rework so that nested Try catches don't have to exist
                             EntityDto entityDto = CoTMcsConverter.convertToEntityDto(cotMessage);
-                            if (entityDto == null) continue;
+                            if (entityDto == null) { 
+                                _logger.error("entityDto is NULL");
+                                continue;
+                            }
                             String json = CoTMcsConverter.convertToJson(entityDto);
                             _callback.publishEntityMessage(json);
                         }
